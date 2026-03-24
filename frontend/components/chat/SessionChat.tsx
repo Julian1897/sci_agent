@@ -230,9 +230,38 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
 
   // Handle send message
   const handleSubmit = useCallback(async (content: string) => {
-    await sendMessage(sessionId, content)
+    const trimmedContent = content.trim()
+    if (!trimmedContent) return
+
+    if (sessionState?.currentMode === 'data-extraction') {
+      const hasPdf = (sessionState.files || []).some(file => file.type !== 'directory' && file.name.toLowerCase().endsWith('.pdf'))
+
+      if (!hasPdf) {
+        await sendMessage(
+          sessionId,
+          '请先上传 PDF 文档，再开始数据抽取。上传后可以继续描述要提取的字段、schema 或目标数据表。'
+        )
+      } else {
+        const extractionPrompt = [
+          '必须使用当前工作区内的本地 skill：./scientific-skills/sciminer。',
+          '不要假设 skill 缺失；它已经被同步到当前工作区。',
+          '请使用工作区内的 sciminer 技能处理当前工作区中的 PDF 文档。',
+          '目标：进入科学文档数据抽取流程，并基于用户需求执行提取。',
+          'Schema：请自动判断最合适的 schema；如果无法判断，再向用户说明。',
+          `用户需求：${trimmedContent}`,
+          '请优先复用当前工作区 dataset/papers 或已上传到工作区中的 PDF 文件，并在会话中输出中间过程、工具调用和最终产物位置。',
+          '优先使用工作区内 sciminer skill 所描述的 /extract、document-ingestion、schema-creator 工作流。',
+          '所有输出都应保留在当前工作区内。'
+        ].join('\n')
+
+        await sendMessage(sessionId, extractionPrompt)
+      }
+    } else {
+      await sendMessage(sessionId, trimmedContent)
+    }
+
     setMessage('')
-  }, [sessionId, sendMessage])
+  }, [sessionId, sendMessage, sessionState?.currentMode, sessionState?.files])
 
   // Handle stop generation
   const handleStop = useCallback(async () => {
@@ -241,8 +270,20 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
 
   // Handle mode change
   const handleModeChange = useCallback(async (mode: SessionMode) => {
-    logger.debug('Mode change:', mode)
-  }, [])
+    if (!token || !sessionState?.session || sessionState.currentMode === mode) return
+
+    try {
+      const updatedSession = await sessionsApi.switchMode(token, sessionId, mode)
+      updateSessionData(sessionId, updatedSession)
+      if (mode === 'data-extraction') {
+        setIsFilePanelOpen(true)
+      }
+      window.dispatchEvent(new CustomEvent('session-updated', { detail: { sessionId } }))
+    } catch (err) {
+      console.error('[SessionChat] Failed to switch mode:', err)
+      alert('切换模式失败，请稍后再试。')
+    }
+  }, [token, sessionState?.session, sessionState?.currentMode, sessionId, updateSessionData])
 
   // Handle toggle public
   const handleTogglePublic = useCallback(async () => {
@@ -487,19 +528,14 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
       {/* Fixed Input area at bottom */}
       <div
         className={cn(
-          'fixed bottom-0 right-0 z-20 border-t border-gray-800 bg-background/95 backdrop-blur-xl',
+          'fixed bottom-0 z-20 border-t border-gray-800 bg-background/95 backdrop-blur-xl',
           'transition-all duration-300 ease-in-out',
           isSidebarCollapsed ? 'left-0' : 'left-[280px]'
         )}
+        style={{ right: isFilePanelOpen ? `${filePanelWidth}px` : 0 }}
       >
-        <div
-          className={cn(
-            'transition-all duration-300 ease-in-out',
-            isFilePanelOpen ? '' : 'mr-0'
-          )}
-          style={isFilePanelOpen ? { marginRight: `${filePanelWidth}px` } : { marginRight: 0 }}
-        >
-          <div className="p-4 pb-6 max-w-4xl mx-auto">
+        <div className="transition-all duration-300 ease-in-out">
+          <div className="w-full p-4 pb-6">
             <ChatInput
               value={message}
               onChange={setMessage}
@@ -508,7 +544,11 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
               onFileUpload={handleFileUpload}
               disabled={sessionState.isSending}
               isLoading={sessionState.isSending}
-              placeholder={sessionState.isSending ? '处理中...' : '输入消息...'}
+              placeholder={
+                sessionState.currentMode === 'data-extraction'
+                  ? (sessionState.isSending ? '数据抽取处理中...' : '上传 PDF 后，直接描述要提取的数据...')
+                  : (sessionState.isSending ? '处理中...' : '输入消息...')
+              }
               mode={sessionState.currentMode}
               onModeChange={handleModeChange}
             />
