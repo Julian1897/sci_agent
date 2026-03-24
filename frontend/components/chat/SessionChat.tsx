@@ -47,6 +47,7 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
   // Local UI state
   const [message, setMessage] = useState('')
   const [isFilePanelOpen, setIsFilePanelOpen] = useState(true)
+  const [filePanelWidth, setFilePanelWidth] = useState(320)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -181,6 +182,26 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
     logger.debug('Navigating to:', path)
     await refreshFiles(sessionId, path)
   }, [refreshFiles, sessionId])
+
+  const handleFilePanelResizeStart = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    const startX = event.clientX
+    const startWidth = filePanelWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const nextWidth = Math.min(640, Math.max(240, startWidth - (moveEvent.clientX - startX)))
+      setFilePanelWidth(nextWidth)
+    }
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+  }, [filePanelWidth])
 
   // Handle file upload
   const handleFileUpload = useCallback(async (uploadedFiles: FileList) => {
@@ -432,12 +453,22 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
           </div>
 
           {/* File browser sidebar - collapsible with slide animation */}
+          {isFilePanelOpen && (
+            <div
+              role="separator"
+              aria-label="调整文件面板宽度"
+              aria-orientation="vertical"
+              onMouseDown={handleFilePanelResizeStart}
+              className="w-1.5 cursor-col-resize bg-transparent hover:bg-primary-500/30 transition-colors"
+            />
+          )}
           <div
             className={cn(
               'flex-shrink-0 border-l border-gray-800 p-4 overflow-hidden',
               'transition-all duration-300 ease-in-out',
-              isFilePanelOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 border-l-0 p-0'
+              isFilePanelOpen ? 'opacity-100' : 'w-0 opacity-0 border-l-0 p-0'
             )}
+            style={isFilePanelOpen ? { width: `${filePanelWidth}px` } : undefined}
           >
             <FileBrowser
               files={sessionState.files}
@@ -464,8 +495,9 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
         <div
           className={cn(
             'transition-all duration-300 ease-in-out',
-            isFilePanelOpen ? 'mr-80' : 'mr-0'
+            isFilePanelOpen ? '' : 'mr-0'
           )}
+          style={isFilePanelOpen ? { marginRight: `${filePanelWidth}px` } : { marginRight: 0 }}
         >
           <div className="p-4 pb-6 max-w-4xl mx-auto">
             <ChatInput
