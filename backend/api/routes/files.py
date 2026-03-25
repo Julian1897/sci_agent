@@ -53,12 +53,65 @@ def _build_preview_payload(full_path: str, session_id: str, file_path: str) -> d
     file_size = os.path.getsize(full_path)
 
     text_extensions = {
-        "txt", "md", "markdown", "json", "yaml", "yml", "py", "js", "ts", "jsx", "tsx",
-        "html", "htm", "css", "scss", "sass", "less", "sql", "csv", "log", "sh", "bash",
-        "zsh", "fish", "ps1", "bat", "cmd", "c", "cpp", "h", "hpp", "java", "go", "rs",
-        "swift", "kt", "kts", "rb", "php", "pl", "pm", "lua", "r", "m", "mm", "scala",
-        "groovy", "dockerfile", "makefile", "cmake", "toml", "ini", "cfg", "conf", "properties",
-        "env", "gitignore", "gitattributes", "editorconfig",
+        "txt",
+        "md",
+        "markdown",
+        "json",
+        "yaml",
+        "yml",
+        "py",
+        "js",
+        "ts",
+        "jsx",
+        "tsx",
+        "html",
+        "htm",
+        "css",
+        "scss",
+        "sass",
+        "less",
+        "sql",
+        "csv",
+        "log",
+        "sh",
+        "bash",
+        "zsh",
+        "fish",
+        "ps1",
+        "bat",
+        "cmd",
+        "c",
+        "cpp",
+        "h",
+        "hpp",
+        "java",
+        "go",
+        "rs",
+        "swift",
+        "kt",
+        "kts",
+        "rb",
+        "php",
+        "pl",
+        "pm",
+        "lua",
+        "r",
+        "m",
+        "mm",
+        "scala",
+        "groovy",
+        "dockerfile",
+        "makefile",
+        "cmake",
+        "toml",
+        "ini",
+        "cfg",
+        "conf",
+        "properties",
+        "env",
+        "gitignore",
+        "gitattributes",
+        "editorconfig",
     }
     image_extensions = {"png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "ico"}
 
@@ -68,7 +121,9 @@ def _build_preview_payload(full_path: str, session_id: str, file_path: str) -> d
 
         max_size = 100 * 1024
         if len(content) > max_size:
-            content = content[:max_size] + "\n\n... [File truncated, too large to preview]"
+            content = (
+                content[:max_size] + "\n\n... [File truncated, too large to preview]"
+            )
 
         return {
             "type": "text",

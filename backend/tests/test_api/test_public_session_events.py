@@ -31,7 +31,9 @@ class TestPublicSessionEventsAPI:
         async_session.add(event)
         await async_session.commit()
 
-        response = await api_client.get(f"/api/sessions/public/{test_session.id}/events")
+        response = await api_client.get(
+            f"/api/sessions/public/{test_session.id}/events"
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -44,6 +46,8 @@ class TestPublicSessionEventsAPI:
         api_client: AsyncClient,
         test_session,
     ):
-        response = await api_client.get(f"/api/sessions/public/{test_session.id}/events")
+        response = await api_client.get(
+            f"/api/sessions/public/{test_session.id}/events"
+        )
 
         assert response.status_code == 404

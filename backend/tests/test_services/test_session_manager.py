@@ -167,7 +167,9 @@ class TestDataScientistIntegration:
             shutil.rmtree(session.working_dir, ignore_errors=True)
 
     @pytest_asyncio.fixture
-    async def extraction_test_session(self, session_manager_instance, test_user) -> Session:
+    async def extraction_test_session(
+        self, session_manager_instance, test_user
+    ) -> Session:
         """Create a data extraction session for SciMiner tests."""
         session = await session_manager_instance.create_session(
             user_id=test_user.id,

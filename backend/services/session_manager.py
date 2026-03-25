@@ -815,7 +815,9 @@ class SessionManager:
                 yield {"data": json.dumps(error_event)}
                 return
 
-            logger.info("Data extraction bound to bundled SciMiner at %s", sciminer_path)
+            logger.info(
+                "Data extraction bound to bundled SciMiner at %s", sciminer_path
+            )
             message_to_send = self._build_data_extraction_message(message)
 
         try:
