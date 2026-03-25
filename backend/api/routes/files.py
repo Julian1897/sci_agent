@@ -419,11 +419,6 @@ async def preview_file(
             detail="File not found",
         )
 
-    # Get file info
-    file_name = os.path.basename(file_path)
-    file_ext = file_name.split(".")[-1].lower() if "." in file_name else ""
-    file_size = os.path.getsize(full_path)
-
     try:
         return _build_preview_payload(full_path, session_id, file_path)
     except Exception as e:

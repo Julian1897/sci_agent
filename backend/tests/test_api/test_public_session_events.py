@@ -4,9 +4,8 @@ API tests for public session event endpoints.
 
 from datetime import datetime
 
-from httpx import AsyncClient
-
 from backend.db.models.session_event import SessionEvent, SessionEventType
+from httpx import AsyncClient
 
 
 class TestPublicSessionEventsAPI:
