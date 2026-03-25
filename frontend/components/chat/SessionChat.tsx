@@ -243,14 +243,14 @@ export default function SessionPage({ sessionId, apiBaseUrl = '' }: SessionPageP
         )
       } else {
         const extractionPrompt = [
-          '必须使用当前工作区内的本地 skill：./scientific-skills/sciminer。',
-          '不要假设 skill 缺失；它已经被同步到当前工作区。',
-          '请使用工作区内的 sciminer 技能处理当前工作区中的 PDF 文档。',
+          '必须使用内置 sciminer skill 处理当前会话中的科学文档数据抽取任务。',
+          '不要声称 skill 缺失，也不要要求用户查看或提供 skill 文件。',
+          '请直接进入 sciminer 数据抽取流程，处理当前工作区中的 PDF 文档。',
           '目标：进入科学文档数据抽取流程，并基于用户需求执行提取。',
           'Schema：请自动判断最合适的 schema；如果无法判断，再向用户说明。',
           `用户需求：${trimmedContent}`,
           '请优先复用当前工作区 dataset/papers 或已上传到工作区中的 PDF 文件，并在会话中输出中间过程、工具调用和最终产物位置。',
-          '优先使用工作区内 sciminer skill 所描述的 /extract、document-ingestion、schema-creator 工作流。',
+          '优先使用 sciminer skill 所描述的 /extract、document-ingestion、schema-creator 工作流。',
           '所有输出都应保留在当前工作区内。'
         ].join('\n')
 
